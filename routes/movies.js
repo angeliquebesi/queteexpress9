@@ -1,7 +1,7 @@
 // Create the router object that will manage all operations on movies
 const moviesRouter = require('express').Router();
 // Import the movie model that we'll need in controller functions
-const Movie = require('../models/movie');
+const Movie = require('../models/movies');
 
 // GET /api/movies/
 moviesRouter.get('/', (req, res) => {
@@ -17,7 +17,7 @@ moviesRouter.get('/', (req, res) => {
 });
 
 moviesRouter.get('/:id', (req, res) => {
-  Movies.findOne(req.params.id)
+  Movie.findId(req.params.id)
     .then((result) => {
       if (result[0].length) res.status(201).json(result[0]);
       else res.status(404).send('Movie not found');
@@ -26,12 +26,11 @@ moviesRouter.get('/:id', (req, res) => {
     })
 });
 moviesRouter.post ('/', (req, res) => {
-  const error = validateData(req.body);
-  console.log(error)
+  const error = Movie.validateDataMovie(req.body);
   if (error) {
     res.status(422).json({ validationErrors: error.details })
   } else {
-    Movies.createMovie(req.body)
+    Movie.createMovie(req.body)
       .then((result) => {
         res.send(result);
       })
@@ -42,20 +41,22 @@ moviesRouter.post ('/', (req, res) => {
 })
 
 moviesRouter.put ('/:id', (req, res) => {
-  const error = validateData(req.body, false)
+  const error = Movie.validateDataMovie(req.body, false)
   console.log(error)
   if (error) {
     res.status(422).json({ validationErrors: error.details })
   } else {
-    Movies.findOne(req.params.id)
+    Movie.findId(req.params.id)
       .then((movie) => {
         if (movie) {
-          existingMovie = movie;
           console.log("Updating")
-          Movies.updateOne(req.body, req.params.id)
+          Movie.updateMovie(req.body, req.params.id)
             .then((result) => {
               res.status(200).json({ ...movie[0][0], ...req.body });
-            });
+            })
+            .catch((err) => {
+              res.status(422).send('Error');
+            })
           return;
         }
         return res.status(404).json({ msg: 'Record not found' })
@@ -67,7 +68,7 @@ moviesRouter.put ('/:id', (req, res) => {
 })
 
 moviesRouter.delete("/:id", (req, res) => {
-  Movies.deleteOne(req.params.id)
+  Movie.deleteOne(req.params.id)
     .then((result) => {
       res.json(result);
     }).catch((err) => {

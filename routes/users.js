@@ -1,9 +1,9 @@
-const userRouter = require('express').Router();
-const User = require('../models/users');
+const usersRouter = require('express').Router();
+const users = require('../models/users');
 
 usersRouter.get('/', (req, res) => {
   const { language } = req.query;
-  Users.findUsers({ filters: { language } })
+  users.findUsers({ filters: { language } })
     .then((result) => {
       res.json(result);
     }).catch((err) => {
@@ -12,7 +12,7 @@ usersRouter.get('/', (req, res) => {
 })
 
 usersRouter.get ('/:id', (req, res) => {
-  Users.findOne(req.params.id)
+  users.findOne(req.params.id)
   .then((result) => {
     if (result[0].length) res.status(201).json(result[0]);
     else res.status(404).send('User not found');
@@ -22,11 +22,11 @@ usersRouter.get ('/:id', (req, res) => {
 });
 
 usersRouter.post('/', (req, res) => {
-  const error = Users.validateData(req.body);
+  const error = users.validateData(req.body);
   if (error){
     res.status(422).json({ validationErrors: error.details });
   } else {
-    Users.createUser(newUser)
+    users.createUser(req.body)
     .then((result) => {
       res.send(result);
     })
@@ -37,14 +37,14 @@ usersRouter.post('/', (req, res) => {
 })
 
 usersRouter.put ('/:id', (req, res) => {
-  const error = Users.validateData(req.body, false);
-  if (error.details) {
+  const error = users.validateData(req.body, false);
+  if (error) {
     res.status(422).json({ validationErrors: error.details });
   } else {
-    Users.findOne(req.params.id)
+    users.findOne(req.params.id)
       .then ((user) => {
         if(user){
-          Users.updateUser(req.body, req.params.id)
+          users.updateUser(req.body, req.params.id)
           .then((result) => {
             res.status(200).json({ ...user[0][0], ...req.body });
           });
@@ -59,7 +59,7 @@ usersRouter.put ('/:id', (req, res) => {
 })
 
 usersRouter.delete ('/:id', (req, res)=> {
-  Users.deleteUser(req.params.id)
+  users.deleteUser(req.params.id)
   .then ((result)=> {
     res.json(result);
   })
@@ -67,3 +67,5 @@ usersRouter.delete ('/:id', (req, res)=> {
     res.send("Error deleting the user")
   })
 })
+
+module.exports = usersRouter;
